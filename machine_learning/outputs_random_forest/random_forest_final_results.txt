@@ -1,0 +1,53 @@
+Random Forest Final Results
+============================================================
+
+Model Configuration
+----------------------------------------
+data_root: ../data
+image_size: 128 x 128 grayscale
+feature_type: 7 statistical features + 16-bin grayscale histogram
+feature_dimension: 23
+augmentation: rotation, translation, brightness, contrast; augment_times=1
+n_estimators: 10
+max_depth: 8
+min_samples_split: 10
+max_features: sqrt
+random_state: 42
+
+Validation Metrics
+----------------------------------------
+Accuracy:  0.9135
+Precision: 0.9305
+Recall:    0.9542
+F1-score:  0.9422
+ROC-AUC:   0.9151
+TN=167, FP=42, FN=27, TP=562
+
+Confusion Matrix
+Rows = true labels, columns = predicted labels
+                  Pred NORMAL    Pred PNEUMONIA
+True NORMAL               167                42
+True PNEUMONIA             27               562
+
+Test Metrics
+----------------------------------------
+Accuracy:  0.7837
+Precision: 0.7972
+Recall:    0.8769
+F1-score:  0.8352
+ROC-AUC:   0.8140
+TN=147, FP=87, FN=48, TP=342
+
+Confusion Matrix
+Rows = true labels, columns = predicted labels
+                  Pred NORMAL    Pred PNEUMONIA
+True NORMAL               147                87
+True PNEUMONIA             48               342
+
+Generated Files
+----------------------------------------
+accuracy_curve: outputs_random_forest\random_forest_accuracy_curve.png
+confusion_matrix: outputs_random_forest\random_forest_confusion_matrix.png
+roc_curve: outputs_random_forest\random_forest_roc_curve.png
+accuracy_history: outputs_random_forest\random_forest_accuracy_history.txt
+final_results: outputs_random_forest\random_forest_final_results.txt
