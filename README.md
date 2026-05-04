@@ -16,19 +16,25 @@ This project was completed by Zihao Xu and Zhichong Wang.
     final_project/
     ├── CNN/
     │   ├── Lnet-5/
-    │   └── Resnet/
+    │   ├── Resnet/
+    │   └── Resnet18_from scratch/
+    │       └── resnet18_from_scratch.ipynb
     ├── LLM/
+    │   ├── Swin_Transformer/
+    │   │   └── swin_transformer_transfer_learning.ipynb
     │   └── VIT/
     ├── machine_learning/
-    │   └── rf/
-    │       ├── outputs_random_forest/
-    │       ├── augment.py
-    │       ├── decision_tree.py
-    │       ├── feature_extraction.py
-    │       ├── metrics.py
-    │       ├── preprocess.py
-    │       ├── random_forest.py
-    │       └── train_rf.py
+    │   ├── rf/
+    │   │   ├── outputs_random_forest/
+    │   │   ├── augment.py
+    │   │   ├── decision_tree.py
+    │   │   ├── feature_extraction.py
+    │   │   ├── metrics.py
+    │   │   ├── preprocess.py
+    │   │   ├── random_forest.py
+    │   │   └── train_rf.py
+    │   └── svm/
+    │       └── hog_svm.ipynb
     ├── .gitignore
     └── README.md
 
@@ -47,7 +53,7 @@ This project was completed by Zihao Xu and Zhichong Wang.
 
 The dataset should be organized as follows:
 
-    data/
+    chest_xray/
     ├── train/
     │   ├── NORMAL/
     │   └── PNEUMONIA/
@@ -57,6 +63,32 @@ The dataset should be organized as follows:
     └── test/
         ├── NORMAL/
         └── PNEUMONIA/
+
+For the notebook-based models completed by Zhichong Wang, the code uses the relative dataset path:
+
+    DATASET_DIR = Path("./chest_xray")
+
+Therefore, before running each notebook, make sure the following folder exists in the same directory as the notebook:
+
+    chest_xray/
+
+Inside `chest_xray/`, the three required split folders must be created:
+
+    train/
+    val/
+    test/
+
+Each split folder must contain the two class folders:
+
+    NORMAL/
+    PNEUMONIA/
+
+The notebook code also uses:
+
+    outputs/
+    models/
+
+These folders are automatically created by the notebooks using `mkdir(exist_ok=True)`, but they can also be created manually before running the notebook.
 
 The dataset is not included in this repository because of file size limitations.
 
@@ -138,7 +170,7 @@ The training set is augmented using:
 
 ### How to Run Random Forest
 
-From the `machine_learning/rf/` directory, run:
+From the project root, run:
 
     cd machine_learning/rf
     python train_rf.py
@@ -161,13 +193,107 @@ Main output files include:
 
 ## Support Vector Machine (SVM)
 
-<!-- To be completed by Zhichong Wang. -->
+The SVM model is implemented as a traditional machine learning baseline using Histogram of Oriented Gradients (HOG) features. Each chest X-ray image is converted to grayscale, resized to 128 x 128, normalized to [0, 1], and then transformed into a HOG feature vector.
+
+### SVM Pipeline
+
+    Input chest X-ray image
+    → grayscale conversion
+    → resize to 128 x 128
+    → normalize pixel values to [0, 1]
+    → HOG feature extraction
+    → feature standardization
+    → Linear SVM classification
+    → evaluation
+
+### HOG Feature Extraction
+
+The HOG feature extractor uses the following settings:
+
+    orientations: 9
+    pixels_per_cell: 8 x 8
+    cells_per_block: 2 x 2
+    block_norm: L2-Hys
+    transform_sqrt: True
+    feature_vector: True
+
+### SVM Configuration
+
+The classifier is implemented using a scikit-learn pipeline:
+
+    StandardScaler
+    LinearSVC
+
+The SVM uses class-balanced training to reduce the effect of class imbalance.
+
+    Model: LinearSVC
+    Class weight: balanced
+    Max iterations: 10000
+    Random seed: 38
+
+### Hyperparameter Tuning
+
+The regularization parameter C is selected using the validation set.
+
+The searched values are:
+
+    C = 0.001
+    C = 0.005
+    C = 0.01
+    C = 0.1
+    C = 1.0
+
+The model with the highest validation accuracy is selected as the final SVM model.
+
+### SVM Files
+
+    machine_learning/
+    └── svm/
+        └── hog_svm.ipynb
+
+### Important Folder Note for SVM
+
+Before running `hog_svm.ipynb`, make sure the following folders exist in the same directory as the notebook:
+
+    chest_xray/
+    outputs/
+    models/
+
+The `chest_xray/` folder must contain:
+
+    train/
+    val/
+    test/
+
+Each of these folders must contain:
+
+    NORMAL/
+    PNEUMONIA/
+
+### How to Run SVM
+
+Open and run the notebook:
+
+    machine_learning/svm/hog_svm.ipynb
+
+or from the project root:
+
+    cd machine_learning/svm
+    jupyter notebook hog_svm.ipynb
+
+### SVM Outputs
+
+The generated files include:
+
+    outputs/SVM_confusion_matrix.png
+    outputs/SVM_roc_curve.png
+    models/hog_svm_pipeline.joblib
 
 ---
 
 ## LeNet-5 Style CNN
 
-The LeNet-5 style CNN is implemented as a lightweight convolutional neural network baseline. Unlike Random Forest, this model directly takes image tensors as input and learns image features through convolutional layers.
+The LeNet-5 style CNN is implemented as a lightweight convolutional neural network baseline. Unlike Random Forest and SVM, this model directly takes image tensors as input and learns image features through convolutional layers.
 
 ### LeNet-5 Pipeline
 
@@ -224,7 +350,105 @@ Main output files include:
 
 ## ResNet18 Trained from Scratch
 
-<!-- To be completed by Zhichong Wang. -->
+The ResNet18-from-scratch model is implemented as a CNN baseline without using pretrained ImageNet weights. The model follows the ResNet18 architecture with residual BasicBlocks and a [2, 2, 2, 2] block configuration.
+
+### ResNet18-from-Scratch Pipeline
+
+    Input chest X-ray image
+    → convert to 3-channel grayscale image
+    → resize to 224 x 224
+    → data augmentation on training set
+    → ResNet18 feature extraction from scratch
+    → fully connected classification layer
+    → binary classification
+    → evaluation
+
+### ResNet18-from-Scratch Architecture
+
+The model contains:
+
+    Initial 7 x 7 convolution
+    Batch normalization
+    ReLU
+    Max pooling
+    Four residual stages
+    Adaptive average pooling
+    Fully connected output layer
+
+The four residual stages follow the ResNet18 block design:
+
+    Layer 1: 64 channels, 2 BasicBlocks
+    Layer 2: 128 channels, 2 BasicBlocks
+    Layer 3: 256 channels, 2 BasicBlocks
+    Layer 4: 512 channels, 2 BasicBlocks
+
+The final fully connected layer outputs two logits:
+
+    NORMAL
+    PNEUMONIA
+
+### ResNet18-from-Scratch Training Configuration
+
+    Model: ResNet18 trained from scratch
+    Input size: 224 x 224
+    Batch size: 64
+    Number of epochs: 16
+    Optimizer: AdamW
+    Learning rate: 1e-4
+    Weight decay: 1e-4
+    Learning rate scheduler: StepLR
+    Step size: 4
+    Gamma: 0.5
+    Loss function: class-weighted CrossEntropyLoss
+    Model selection: best validation accuracy
+    Random seed: 38
+
+### ResNet18-from-Scratch Files
+
+    CNN/
+    └── Resnet18_from scratch/
+        └── resnet18_from_scratch.ipynb
+
+### Important Folder Note for ResNet18 from Scratch
+
+Before running `resnet18_from_scratch.ipynb`, make sure the following folders exist in the same directory as the notebook:
+
+    chest_xray/
+    outputs/
+    models/
+
+The `chest_xray/` folder must contain:
+
+    train/
+    val/
+    test/
+
+Each of these folders must contain:
+
+    NORMAL/
+    PNEUMONIA/
+
+### How to Run ResNet18 from Scratch
+
+Open and run the notebook:
+
+    CNN/Resnet18_from scratch/resnet18_from_scratch.ipynb
+
+or from the project root:
+
+    cd "CNN/Resnet18_from scratch"
+    jupyter notebook resnet18_from_scratch.ipynb
+
+### ResNet18-from-Scratch Outputs
+
+The generated files include:
+
+    outputs/sample_images.png
+    outputs/resnet18_loss_curve.png
+    outputs/resnet18_accuracy_curve.png
+    outputs/resnet18_confusion_matrix.png
+    outputs/resnet18_roc_curve.png
+    models/resnet18_from_scratch_best.pth
 
 ---
 
@@ -323,7 +547,95 @@ Main output files include:
 
 ## Swin Transformer
 
-<!-- To be completed by Zhichong Wang. -->
+The Swin Transformer model is implemented as a transformer-based transfer learning model. The model uses the torchvision Swin-T architecture with ImageNet-pretrained weights. The final classification head is replaced with a two-class output layer for pneumonia classification.
+
+### Swin Transformer Pipeline
+
+    Input chest X-ray image
+    → convert grayscale image to 3-channel format
+    → resize to 224 x 224
+    → data augmentation on training set
+    → ImageNet normalization
+    → pretrained Swin-T model
+    → modified classification head
+    → binary classification
+    → evaluation
+
+### Swin Transformer Data Augmentation
+
+The training set uses lightweight augmentation:
+
+    Random rotation: 8 degrees
+    Random affine translation: 0.05
+    Brightness adjustment: 0.10
+    Contrast adjustment: 0.10
+
+The validation and test sets use deterministic preprocessing only.
+
+### Swin Transformer Configuration
+
+    Model: Swin-T
+    Pretraining: ImageNet
+    Input size: 224 x 224
+    Freeze backbone: False
+    Batch size: 64
+    Number of epochs: 12
+    Optimizer: AdamW
+    Learning rate: 6e-5
+    Weight decay: 1e-4
+    Learning rate scheduler: StepLR
+    Step size: 4
+    Gamma: 0.5
+    Loss function: class-weighted CrossEntropyLoss
+    Model selection: best validation accuracy
+    Random seed: 38
+
+### Swin Transformer Files
+
+    LLM/
+    └── Swin_Transformer/
+        └── swin_transformer_transfer_learning.ipynb
+
+### Important Folder Note for Swin Transformer
+
+Before running `swin_transformer_transfer_learning.ipynb`, make sure the following folders exist in the same directory as the notebook:
+
+    chest_xray/
+    outputs/
+    models/
+
+The `chest_xray/` folder must contain:
+
+    train/
+    val/
+    test/
+
+Each of these folders must contain:
+
+    NORMAL/
+    PNEUMONIA/
+
+### How to Run Swin Transformer
+
+Open and run the notebook:
+
+    LLM/Swin_Transformer/swin_transformer_transfer_learning.ipynb
+
+or from the project root:
+
+    cd LLM/Swin_Transformer
+    jupyter notebook swin_transformer_transfer_learning.ipynb
+
+### Swin Transformer Outputs
+
+The generated files include:
+
+    outputs/sample_images_swin.png
+    outputs/swin_transformer_loss_curve.png
+    outputs/swin_transformer_accuracy_curve.png
+    outputs/swin_transformer_confusion_matrix.png
+    outputs/swin_transformer_roc_curve.png
+    models/swin_transformer_transfer_learning_best.pth
 
 ---
 
@@ -351,6 +663,8 @@ For deep learning models, training curves are also generated:
 
 For Random Forest, the curve is plotted against the number of trees instead of epochs because Random Forest is not trained through epoch-based gradient descent.
 
+For SVM, ROC-AUC is computed using the SVM decision function.
+
 ---
 
 ## Output Files
@@ -365,6 +679,8 @@ Depending on the model, the generated output files may include:
     metrics.txt
     final_results.txt
     best_model.pth
+    best_model.pt
+    *.joblib
 
 For Random Forest, the output files include:
 
@@ -373,6 +689,28 @@ For Random Forest, the output files include:
     machine_learning/rf/outputs_random_forest/random_forest_roc_curve.png
     machine_learning/rf/outputs_random_forest/random_forest_accuracy_history.txt
     machine_learning/rf/outputs_random_forest/random_forest_final_results.txt
+
+For SVM, the output files include:
+
+    machine_learning/svm/outputs/SVM_confusion_matrix.png
+    machine_learning/svm/outputs/SVM_roc_curve.png
+    machine_learning/svm/models/hog_svm_pipeline.joblib
+
+For ResNet18 from scratch, the output files include:
+
+    CNN/Resnet18_from scratch/outputs/resnet18_loss_curve.png
+    CNN/Resnet18_from scratch/outputs/resnet18_accuracy_curve.png
+    CNN/Resnet18_from scratch/outputs/resnet18_confusion_matrix.png
+    CNN/Resnet18_from scratch/outputs/resnet18_roc_curve.png
+    CNN/Resnet18_from scratch/models/resnet18_from_scratch_best.pth
+
+For Swin Transformer, the output files include:
+
+    LLM/Swin_Transformer/outputs/swin_transformer_loss_curve.png
+    LLM/Swin_Transformer/outputs/swin_transformer_accuracy_curve.png
+    LLM/Swin_Transformer/outputs/swin_transformer_confusion_matrix.png
+    LLM/Swin_Transformer/outputs/swin_transformer_roc_curve.png
+    LLM/Swin_Transformer/models/swin_transformer_transfer_learning_best.pth
 
 For ViT, the best checkpoint is saved as:
 
@@ -387,14 +725,18 @@ The project requires the following Python packages:
     numpy
     matplotlib
     opencv-python
+    pillow
+    scikit-image
+    scikit-learn
+    joblib
     torch
     torchvision
     tqdm
-    scikit-learn
+    jupyter
 
 Install dependencies using:
 
-    pip install numpy matplotlib opencv-python torch torchvision tqdm scikit-learn
+    pip install numpy matplotlib opencv-python pillow scikit-image scikit-learn joblib torch torchvision tqdm jupyter
 
 ---
 
@@ -405,10 +747,20 @@ Install dependencies using:
     cd machine_learning/rf
     python train_rf.py
 
+### Run SVM
+
+    cd machine_learning/svm
+    jupyter notebook hog_svm.ipynb
+
 ### Run LeNet-5
 
     cd CNN/Lnet-5
     python main.py
+
+### Run ResNet18 from Scratch
+
+    cd "CNN/Resnet18_from scratch"
+    jupyter notebook resnet18_from_scratch.ipynb
 
 ### Run ResNet18 with ImageNet Pretraining
 
@@ -420,13 +772,44 @@ Install dependencies using:
     cd LLM/VIT
     python main.py
 
+### Run Swin Transformer
+
+    cd LLM/Swin_Transformer
+    jupyter notebook swin_transformer_transfer_learning.ipynb
+
+---
+
+## Important Running Notes
+
+For the notebook-based models, including SVM, ResNet18 from scratch, and Swin Transformer, the notebooks use relative paths. Therefore, each notebook should be run from its own folder.
+
+Before running these notebooks, prepare the following folder structure inside the notebook directory:
+
+    chest_xray/
+    ├── train/
+    │   ├── NORMAL/
+    │   └── PNEUMONIA/
+    ├── val/
+    │   ├── NORMAL/
+    │   └── PNEUMONIA/
+    └── test/
+        ├── NORMAL/
+        └── PNEUMONIA/
+
+Also make sure that the following folders exist or can be created:
+
+    outputs/
+    models/
+
+The notebooks will not create `outputs/` and `models/` automatically, and the dataset folder `chest_xray/` must be prepared manually.
+
 ### Windows Dataloader Note
 
 If running on Windows and encountering multiprocessing-related dataloader errors, set:
 
     num_workers = 0
 
-or run with:
+or, for scripts that support command-line arguments, run with:
 
     python main.py --n_workers 0
 
@@ -437,13 +820,23 @@ or run with:
 Large files should not be uploaded to GitHub, including:
 
     data/
+    chest_xray/
     *.pth
     *.pt
+    *.joblib
     outputs/
     output/
+    models/
     outputs_random_forest/
     machine_learning/rf/outputs_random_forest/
+    machine_learning/svm/outputs/
+    machine_learning/svm/models/
+    CNN/Resnet18_from scratch/outputs/
+    CNN/Resnet18_from scratch/models/
+    LLM/Swin_Transformer/outputs/
+    LLM/Swin_Transformer/models/
     __pycache__/
+    .ipynb_checkpoints/
 
 These files should be excluded using .gitignore.
 
