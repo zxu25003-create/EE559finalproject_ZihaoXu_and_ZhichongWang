@@ -20,15 +20,17 @@ This project was completed by Zihao Xu and Zhichong Wang.
     ├── LLM/
     │   └── VIT/
     ├── machine_learning/
-    │   ├── outputs_random_forest/
-    │   ├── augment.py
-    │   ├── decision_tree.py
-    │   ├── feature_extraction.py
-    │   ├── metrics.py
-    │   ├── preprocess.py
-    │   ├── random_forest.py
-    │   └── train_rf.py
-    └── .gitignore
+    │   └── rf/
+    │       ├── outputs_random_forest/
+    │       ├── augment.py
+    │       ├── decision_tree.py
+    │       ├── feature_extraction.py
+    │       ├── metrics.py
+    │       ├── preprocess.py
+    │       ├── random_forest.py
+    │       └── train_rf.py
+    ├── .gitignore
+    └── README.md
 
 ---
 
@@ -125,25 +127,27 @@ The training set is augmented using:
 ### Random Forest Files
 
     machine_learning/
-    ├── augment.py
-    ├── decision_tree.py
-    ├── feature_extraction.py
-    ├── metrics.py
-    ├── preprocess.py
-    ├── random_forest.py
-    └── train_rf.py
+    └── rf/
+        ├── augment.py
+        ├── decision_tree.py
+        ├── feature_extraction.py
+        ├── metrics.py
+        ├── preprocess.py
+        ├── random_forest.py
+        └── train_rf.py
 
 ### How to Run Random Forest
 
-From the machine_learning/ directory, run:
+From the `machine_learning/rf/` directory, run:
 
+    cd machine_learning/rf
     python train_rf.py
 
 ### Random Forest Outputs
 
 The generated results are saved in:
 
-    machine_learning/outputs_random_forest/
+    machine_learning/rf/outputs_random_forest/
 
 Main output files include:
 
@@ -364,11 +368,11 @@ Depending on the model, the generated output files may include:
 
 For Random Forest, the output files include:
 
-    random_forest_accuracy_curve.png
-    random_forest_confusion_matrix.png
-    random_forest_roc_curve.png
-    random_forest_accuracy_history.txt
-    random_forest_final_results.txt
+    machine_learning/rf/outputs_random_forest/random_forest_accuracy_curve.png
+    machine_learning/rf/outputs_random_forest/random_forest_confusion_matrix.png
+    machine_learning/rf/outputs_random_forest/random_forest_roc_curve.png
+    machine_learning/rf/outputs_random_forest/random_forest_accuracy_history.txt
+    machine_learning/rf/outputs_random_forest/random_forest_final_results.txt
 
 For ViT, the best checkpoint is saved as:
 
@@ -398,7 +402,7 @@ Install dependencies using:
 
 ### Run Random Forest
 
-    cd machine_learning
+    cd machine_learning/rf
     python train_rf.py
 
 ### Run LeNet-5
@@ -438,6 +442,7 @@ Large files should not be uploaded to GitHub, including:
     outputs/
     output/
     outputs_random_forest/
+    machine_learning/rf/outputs_random_forest/
     __pycache__/
 
 These files should be excluded using .gitignore.
